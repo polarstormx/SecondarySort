@@ -47,7 +47,6 @@ public class Pair_Int implements WritableComparable<Pair_Int> {
 	@Override
 	public int hashCode() {
 		// 由于第二列的值的范围不超过100，因此使用此函数即可确保任意不同的一二列值对的哈希码不同
-
 		return lf * 100 + rt;
 	}
 

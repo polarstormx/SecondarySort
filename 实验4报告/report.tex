@@ -94,7 +94,6 @@
 \renewcommand\refname{reference}
 \author{组长：韩畅，组员：李展烁、王一之、闫旭芃}
 \begin{document}
-%hello world
 %\listoffigures
 \captionsetup[figure]{labelfont={bf},labelformat={default},labelsep=period,name={图}}
 \title{大数据综合处理实验\\
@@ -110,55 +109,61 @@
 \subsection{任务要求}
 使用 MapReduce 完成对数据的二次排序。 
 \subsection{设计思路}
-todo
-\begin{figure}[H]
-    \centering
-
-    \includegraphics[width = 15cm]{shuffle.png}
-
-    \caption{mapreduce shuffle工作流程图}
-\end{figure}
+map过程将每行的两个值处理为自定义数据结构Pair\_Int作为key，为减少传输量，value为空。
+重写partitioner，保证分区时第一个值相同的值分配到同一个ruducer上。
+在Pair\_Int中设置比较函数，每个分区会调用此比较函数，此时便完成了二次排序。
+重载Comparator，保证分组时第一个值相同的结果在同一批次任务中处理,reduce阶段将传入的值转化为text直接输出即可。
 \subsubsection{自定义数据类型}
-自定义一个bean存储表中每一种数据：oid,odata,oamount,pid,pname,price
+自定义一个Pair\_Int存储数值对
 \begin{figure}[H]
     \centering
 
-    \includegraphics[width = 15cm]{bean1.png}
+    \includegraphics[width = 15cm]{pairint1.png}
 
-    \caption{自定义bean}
+    \caption{自定义Pair\_Int}
 \end{figure}
-实现一些必要的函数，并且实现compareTo()，目的是为了按照pid进行排序分组，每一组然后按照pname排序,因为o表中不存在pname所以，p表中的内容就会被排在o表内容的前面
+重载读写方法，，重载toString方法方便最终输出，以二次排序的规则重载compareTo方法，同时重载WritableComparator提供字节流比较
 \begin{figure}[H]
     \centering
-    \subfigure[实现compareTo]
+    \subfigure[重载比较]
     {
-        \includegraphics[width = 15cm]{bean2.png}
+        \includegraphics[width = 15cm]{pairint3.png}
     }
     \vfill
-    \subfigure[部分其他函数(1)]
+    \subfigure[重载比较2]
     {
-        \includegraphics[width = 15cm]{bean3.png}
+        \includegraphics[width = 15cm]{pairint4.png}
     }
     \vfill
-    \subfigure[部分其他函数(2)]
+    \caption{Pair\_Int部分代码实现1}
+    \label{PairInt}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \subfigure[重载读写]
     {
-        \includegraphics[width = 15cm]{bean4.png}
+        \includegraphics[width = 15cm]{pairint2.png}
+    }
+    \vfill
+    \subfigure[部分其他函数]
+    {
+        \includegraphics[width = 15cm]{pairint5.png}
     }
 
-    \caption{orderbean部分代码实现}
+    \caption{Pair\_Int部分代码实现2}
 \end{figure}
 \subsubsection{主功能Map设计思路}
-分辨读入的数据来源于哪个文件，分别给相应的值赋值，不存在的值则赋值为空。输出的key打包成之前自定义的ordebean类型
+读入数据，每行的两个值以自定义数据结构Pair\_Int的方式作为key，value都为空
 \begin{figure}[H]
     \centering
 
     \includegraphics[width = 15cm]{map1.png}
 
-    \caption{Mapper部分实现}
+    \caption{Mapper实现}
     \label{mapper}
 \end{figure}
 \subsubsection{重写Partitioner}
-对map发出的数据进行分区，根据pid进行分区
+重写Partitioner自定义分区，根据第一个值进行分区，保证第一个值相同在同一个reducer上
 \begin{figure}[H]
     \centering
 
@@ -167,50 +172,32 @@ todo
     \caption{Partitioner部分实现}
 \end{figure}
 \subsubsection{排序}
-排序会根据key排序，由于key是自定义数据类型orderbean，所以在orderbean中需要自定义排序方法（见上）\\
-compareTo函数首先按照pid排序，然后按照pname排序。由于product中pid 是唯一的，所以相同的pid中只会有一个pname，并且会被排序到最前面，形成特定的结构
-\begin{figure}[H]
-    \centering
-    \subfigure[按照pid进行排序]
-    {
-        \includegraphics[width = 14cm]{ord1.png}
-    }
-    \vfill
-    \subfigure[排序结果示例]
-    {
-        \includegraphics[width = 14cm]{ord2.png}
-    }
-    \caption{排序示例}
-\end{figure}
+mapreduce此阶段对每个分区内进行排序，key为自定义类型，所以在Pair\_Int中自定义排序方法，见\ref{PairInt}\\
+compareTo函数首先第一个值，若相同则比较第二个值，完成第一列升序，第二列降序的比较。
+
 \subsubsection{自定义分组}
-一个reduce任务，默认只会接收到一个key的数据，所以我们要把相同pid的数据分到一个组里面处理
+为保证结果正确，第一个值相同的结果要在同一个reduce任务中处理因此重载RawComparator进行自定义分组
 \begin{figure}[H]
     \centering
 
     \includegraphics[width = 15cm]{comp1.png}
 
-    \caption{自定义分组示例}
-\end{figure}
-\begin{figure}[H]
-    \centering
-
-    \includegraphics[width = 15cm]{comp2.png}
-
     \caption{重写Comparator}
 \end{figure}
 \subsubsection{主功能Reduce设计思路}
-输入的第一对中的key为要join的对应的Pname及Price，将此值分别赋给之后的所有键值对中的key，并写入结果。
+输入的key中已经是排好序的结果，自定义类型已经实现了tostring，直接输出即可
 \begin{figure}[H]
     \centering
 
-    \includegraphics[width = 15cm]{reducer.png}
+    \includegraphics[width = 15cm]{reduce1.png}
 
     \caption{重写Reducer}
     \label{reducer}
 \end{figure}
 
 \subsubsection{Key-Value类型协调}
-value设为空NullWritable，自定义key数据类型OrderBean，将数据全部封装到这里面，方便后续排序，分区，分组
+map输出类型为 intPair, IntWritable，value实际为空(NullWritable) \\
+reduce输出类型为 intPair, IntWritable，value同样为空(NullWritable)，但key中会调用Pair\_Int的tostring，输出实际为text
 \subsection{代码演示}
 \subsubsection{Map阶段代码演示}
 已经包含在设计思路图片中，见图\ref{mapper}
@@ -220,25 +207,21 @@ value设为空NullWritable，自定义key数据类型OrderBean，将数据全部
 \section{实验结果展示}
 
 \subsection{结果文件在HDFS上的路径}
-/user/2020st18/output2/
-\subsection{所有命令}
-jar包执行命令：hadoop jar /home/2020st18/HiveMyJoin.jar MyJoin.JoinDriver /data/exercise\_3 output2 
-
-hive建表命令：create table orders(id int,order\_date string,pid string,name string,price int,num int) row format delimited fields terminated by '\t' location '/user/2020st18/output2/';
-\subsection{hive 输出结果文件的部分截图}
+todo
+\subsection{输出结果文件的部分截图}
 \begin{figure}[H]
 	\centering
-	\subfigure[orders表开头]
+	\subfigure[结果开头]
 	{
-		\includegraphics[width = 15cm]{hive1.PNG}
+		\includegraphics[width = 15cm]{res1.PNG}
 	}
 	\vfill
-	\subfigure[orders表结尾]
+	\subfigure[结果结尾]
 	{
-		\includegraphics[width = 15cm]{hive2.PNG}
+		\includegraphics[width = 15cm]{res2.PNG}
 	}
 	
-	\caption{Hive执行结果}
+	\caption{执行结果}
 \end{figure}
 
 \subsection{Web UI 报告内容展示}
@@ -249,8 +232,8 @@ hive建表命令：create table orders(id int,order\_date string,pid string,name
 \end{figure}
 \section{实验经验总结与改进方向}
 \begin{itemize}
-	\item 同上次实验相比，使用github进行版本管理与协作，提高了效率
-	\item 利用了reducer中values调用next()时key也同步更新的特性，进行reducer设计
+	\item todo
+	\item todo
 \end{itemize}
 
 \bibliographystyle{plain}

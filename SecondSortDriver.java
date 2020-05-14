@@ -26,11 +26,11 @@ public class SecondSortDriver{
 		job.setGroupingComparatorClass(SecondSortGroupingComparator.class);
 
 		job.setInputFormatClass(KeyValueTextInputFormat.class);
-		// map输出类型为 intPair, IntWritable，value实际为空
+		// map输出类型为 Pair_Int, IntWritable，value实际为空(NullWritable)
 		job.setMapOutputKeyClass(Pair_Int.class);
 		job.setMapOutputValueClass(NullWritable.class);
 
-		// reduce输出类型为intPair, IntWritable，value实际为空，key调用intpair的tostring，输出text流
+		// reduce输出类型为 Pair_Int, IntWritable，value实际为空(NullWritable)，key调用intpair的tostring，输出text流
 		job.setOutputKeyClass(Pair_Int.class);
 		job.setOutputValueClass(NullWritable.class);
 

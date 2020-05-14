@@ -20,7 +20,8 @@
 \usepackage{xcolor}
 \usepackage{float}
 \usepackage{caption}
-
+\usepackage{mathrsfs}
+\usepackage{amsmath}
 \usepackage[utf8]{inputenc}
 \usepackage[UTF8]{ctex}
 
@@ -97,17 +98,17 @@
 %\listoffigures
 \captionsetup[figure]{labelfont={bf},labelformat={default},labelsep=period,name={图}}
 \title{大数据综合处理实验\\
-实验三}
+实验四}
 \maketitle
 
 \section{实验规划与设计}
 \subsection{任务分配}
-{171860551, \text{韩畅：组长}}\\ \indent
-{171860550, \text{王一之：}}\\ \indent
-{171860549, \text{闫旭芃：}}\\ \indent
-{171840565, \text{李展烁：}}
+{171860551, \text{韩畅：组长,算法设计与实验规划，Pair\_Int类，partitionr类，combiner 类编写，程序调试与优化}}\\ \indent
+{171860550, \text{王一之：算法设计与实验规划，程序优化，添加程序代码，主要报告编写，github集中控制}}\\ \indent
+{171860549, \text{闫旭芃：算法设计与实验规划,driver类以及代码整合,修改,hadoop集群调试提交，部分报告补充}}\\ \indent
+{171840565, \text{李展烁：算法设计与实验规划,mapper类,reducer类,combiner类编写,参与程序优化和代码修改}}
 \subsection{任务要求}
-使用 MapReduce 完成对数据的二次排序。 
+使用 MapReduce 完成对数据的二次排序。
 \subsection{设计思路}
 map过程将每行的两个值处理为自定义数据结构Pair\_Int作为key，为减少传输量，value为空。
 重写partitioner，保证分区时第一个值相同的值分配到同一个ruducer上。
@@ -207,21 +208,29 @@ reduce输出类型为 intPair, IntWritable，value同样为空(NullWritable)，�
 \section{实验结果展示}
 
 \subsection{结果文件在HDFS上的路径}
-todo
+\begin{figure}[H]
+    \centering
+
+    \includegraphics[width = 15cm]{HDFS.png}
+
+    \caption{HDFS路径截图}
+    %\label{HDFS}
+\end{figure}
 \subsection{输出结果文件的部分截图}
 \begin{figure}[H]
 	\centering
-	\subfigure[结果开头]
-	{
-		\includegraphics[width = 15cm]{res1.PNG}
-	}
-	\vfill
-	\subfigure[结果结尾]
-	{
-		\includegraphics[width = 15cm]{res2.PNG}
-	}
-	
-	\caption{执行结果}
+	\includegraphics[width = 15cm]{res0.PNG}
+	\caption{web实验结果查看}
+\end{figure}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width = 15cm]{res1.PNG}
+	\caption{结果开头}
+\end{figure}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width = 15cm]{res2.PNG}
+	\caption{结果结尾}
 \end{figure}
 
 \subsection{Web UI 报告内容展示}
@@ -231,11 +240,10 @@ todo
 	\caption{WebUI执行报告}
 \end{figure}
 \section{实验经验总结与改进方向}
-\begin{itemize}
-	\item todo
-	\item todo
-\end{itemize}
-
+\begin{enumerate}[1)]
+    \item 同上次实验相比，这次同样自定义了数据类型，但是比较是直接在字节流中比较，避免创建对象
+    \item 这次算法的巧妙之处在于：升序降序的实现是序列化时使用了一个技巧，使得Pair\_Int对象按IF升序、按rt降序排序等价于序列化后byte数组的字典序，进而可以直接使用Writable.compareBytes 对序列化的byte 数组进行比较，减小了序列化的开销。在write方法中：先写入lf-Integer.MIN\_VALUE，将$-2^{31}$到$2^{31}-1$映射在0x00000000到0xffffffff，此时byte[ ]字典序等价于int 升序；再写入Integer.MAX \_VALUE-rt，将$2^{31}-1$到$2^{31}$映射在0x00000000到0xffffffff，此时byte[ ] 字典序等价于int降序。在readFields方法中，再相应地还原。
+\end{enumerate}
 \bibliographystyle{plain}
 \bibliography{ref}
 

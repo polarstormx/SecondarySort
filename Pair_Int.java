@@ -49,7 +49,6 @@ public class Pair_Int implements WritableComparable<Pair_Int> {
 		// 由于第二列的值的范围不超过100，因此使用此函数即可确保任意不同的一二列值对的哈希码不同
 
 		return lf * 100 + rt;
-		// return super.hashCode();
 	}
 
 	@Override
@@ -62,7 +61,6 @@ public class Pair_Int implements WritableComparable<Pair_Int> {
 		} else {
 			return false;
 		}
-		// return super.equals(obj);
 	}
 
 	public static class SSComparator extends WritableComparator {
@@ -75,7 +73,6 @@ public class Pair_Int implements WritableComparable<Pair_Int> {
 		public int compare(byte[] arg0, int arg1, int arg2, byte[] arg3, int arg4, int arg5) {
 	
 			return compareBytes(arg0, arg1, arg2, arg3, arg4, arg5);
-			// return super.compare(arg0, arg1, arg2, arg3, arg4, arg5);
 		}
 	}
 
@@ -84,7 +81,6 @@ public class Pair_Int implements WritableComparable<Pair_Int> {
 		WritableComparator.define(Pair_Int.class, new SSComparator());
 	}
 
-	// set methods and get methods
 	// 常规的设置或获取函数
 	public int getLf() {
 		return lf;

@@ -9,6 +9,7 @@ public class SecondSortGroupingComparator implements RawComparator<SecondarySort
 		return WritableComparator.compareBytes(b1, s1, Integer.BYTES, b2, s2, Integer.BYTES);
 	}
 
+	//根据第一个字段分组
 	@Override
 	public int compare(SecondarySort.Pair_Int p1, SecondarySort.Pair_Int p2) {
 		return Integer.compare(p1.getLf(), p2.getLf());

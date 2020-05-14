@@ -21,16 +21,16 @@ public class SecondSortDriver{
 		job.setMapperClass(SecondSortMapper.class);
 		job.setReducerClass(SecondSortReducer.class);
 
-		// group and partition by the first int in the pair
+		// 通过pair中的第一个值分组
 		job.setPartitionerClass(L1Partitioner.class);
 		job.setGroupingComparatorClass(SecondSortGroupingComparator.class);
 
 		job.setInputFormatClass(KeyValueTextInputFormat.class);
-		// the map output is Pair, IntWritable
+		// map输出类型为 intPair, IntWritable，value实际为空
 		job.setMapOutputKeyClass(Pair_Int.class);
 		job.setMapOutputValueClass(NullWritable.class);
 
-		// the reduce output is Text, IntWritable
+		// reduce输出类型为intPair, IntWritable，value实际为空，key调用intpair的tostring，输出text流
 		job.setOutputKeyClass(Pair_Int.class);
 		job.setOutputValueClass(NullWritable.class);
 

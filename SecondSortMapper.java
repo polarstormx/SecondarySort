@@ -12,6 +12,6 @@ public class SecondSortMapper
     @Override
     public void map(Text key, Text value,Context context) throws IOException, InterruptedException {
       this.key.set(Integer.parseInt(key.toString()), Integer.parseInt(value.toString()));
-      context.write(this.key, NullWritable.get());
+      context.write(this.key, NullWritable.get());//key中为intpair，value为null
     }
  }
